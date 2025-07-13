@@ -209,6 +209,43 @@ for var_item in add_dollars:
 print(price_tool_frame.to_string(index=False))
 print()
 
+# Recommendation System
+print()
+print(make_statement("Recommendations", "💡"))
+
+# Convert costs back to numbers for comparison
+costs_as_numbers = []
+unit_prices_as_numbers = []
+
+for cost in price_tool_frame['Cost']:
+    costs_as_numbers.append(float(cost.replace('$', '')))
+
+for unit_price in price_tool_frame['Unit Price']:
+    unit_prices_as_numbers.append(float(unit_price.replace('$', '')))
+
+# Find best value (lowest unit price)
+best_unit_price = min(unit_prices_as_numbers)
+best_index = unit_prices_as_numbers.index(best_unit_price)
+best_item = all_items[best_index]
+best_cost = costs_as_numbers[best_index]
+
+# Make recommendation based on budget preference
+if go_over_budget == "no":
+    if best_cost <= budget:
+        print(f"Recommended: {best_item}")
+        print(f"Cost: {currency(best_cost)} - Within your budget!")
+    else:
+        print("Sorry, the best value item is over your budget.")
+        print("Consider items with higher unit prices that fit your budget.")
+else:
+    print(f"Best Value: {best_item}")
+    print(f"Cost: {currency(best_cost)}")
+    print(f"Unit Price: {currency(best_unit_price)} per {converted_unit}")
+
+    if best_cost > budget:
+        print(f"This item is over your budget by {currency(best_cost - budget)}")
+    else:
+        print("This item is within your budget!")
 
 
 
