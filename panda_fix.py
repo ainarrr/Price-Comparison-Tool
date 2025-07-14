@@ -198,20 +198,17 @@ price_tool_frame["Unit Price"] = (price_tool_frame["Cost"] / price_tool_frame[f"
 
 
 # Currency formatting (using my currency function)
-add_dollars = ['Cost', 'Unit Price']
-for var_item in add_dollars:
-
+for var_item in ['Cost', 'Unit Price']:
     price_tool_frame[var_item] = price_tool_frame[var_item].apply(currency)
-# Rename the 'Age' and 'Department' columns
 
 
-# Print result with no index
+# Print the dataframe with no index
 print(price_tool_frame.to_string(index=False))
 print()
 
 # Recommendation System
 print()
-print(make_statement("Recommendations", "💡"))
+print(make_statement("Recommendation", "💡"))
 
 # Convert costs back to numbers for comparison
 costs_as_numbers = []
@@ -234,6 +231,7 @@ if go_over_budget == "no":
     if best_cost <= budget:
         print(f"Recommended: {best_item}")
         print(f"Cost: {currency(best_cost)} - Within your budget!")
+        print(f"Unit Price: {currency(best_unit_price)} per {converted_unit}")
     else:
         print("Sorry, the best value item is over your budget.")
         print("Consider items with higher unit prices that fit your budget.")
