@@ -1,4 +1,6 @@
 import pandas
+from tabulate import tabulate
+
 def make_statement(statement, decoration):
     """" Emphasises headings by adding decoration
     at the start and end"""
@@ -201,10 +203,17 @@ price_tool_frame["Unit Price"] = (price_tool_frame["Cost"] / price_tool_frame[f"
 for var_item in ['Cost', 'Unit Price']:
     price_tool_frame[var_item] = price_tool_frame[var_item].apply(currency)
 
+# make expense frame into a string with desired columns
 
-# Print the dataframe with no index
-print(price_tool_frame.to_string(index=False))
+# Print the dataframe using tabulate for nicer formatting
+if item_type in ['q', 'quantity']:
+    print(tabulate(price_tool_frame[['Item', amount_label, 'Cost', 'Unit Price']],
+                   headers='keys', tablefmt='psql', showindex=False))
+else:
+    print(tabulate(price_tool_frame[['Item', amount_label, f"Amount ({converted_unit})", 'Cost', 'Unit Price']],
+                   headers='keys', tablefmt='psql', showindex=False))
 print()
+
 
 # Recommendation System
 print()
@@ -213,37 +222,35 @@ print(make_statement("Recommendation", "💡"))
 # Convert costs back to numbers for comparison
 costs_as_numbers = []
 unit_prices_as_numbers = []
-
+# Find best value (lowest unit price)
+recommended_item = []
+recommended_cost = []
 for cost in price_tool_frame['Cost']:
     costs_as_numbers.append(float(cost.replace('$', '')))
 
 for unit_price in price_tool_frame['Unit Price']:
     unit_prices_as_numbers.append(float(unit_price.replace('$', '')))
 
-# Find best value (lowest unit price)
-best_unit_price = min(unit_prices_as_numbers)
-best_index = unit_prices_as_numbers.index(best_unit_price)
-best_item = all_items[best_index]
-best_cost = costs_as_numbers[best_index]
 
 # Make recommendation based on budget preference
 if go_over_budget == "no":
-    if best_cost <= budget:
-        print(f"Recommended: {best_item}")
-        print(f"Cost: {currency(best_cost)} - Within your budget!")
-        print(f"Unit Price: {currency(best_unit_price)} per {converted_unit}")
+    if recommended_item is not None:
+        print(f"Recommended: {recommended_item}")
+        print(f"Cost: {currency(recommended_cost)} - Within your budget!")
+        print(f"Unit Price: ${recommended_unit_price:.2f} per {converted_unit}")
     else:
-        print("Sorry, the best value item is over your budget.")
-        print("Consider items with higher unit prices that fit your budget.")
+        print("Sorry, there are no items within your budget.")
 else:
+    best_index = unit_prices_as_numbers.index(min(unit_prices_as_numbers))
+    best_item = all_items[best_index]
+    best_cost = costs_as_numbers[best_index]
+    best_unit_price = min(unit_prices_as_numbers)
+
     print(f"Best Value: {best_item}")
     print(f"Cost: {currency(best_cost)}")
-    print(f"Unit Price: {currency(best_unit_price)} per {converted_unit}")
+    print(f"Unit Price: ${best_unit_price:.2f} per {converted_unit}")
 
     if best_cost > budget:
         print(f"This item is over your budget by {currency(best_cost - budget)}")
     else:
         print("This item is within your budget!")
-
-
-
