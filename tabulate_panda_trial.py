@@ -1,6 +1,5 @@
 import pandas
 from tabulate import tabulate
-from datetime import date
 
 def make_statement(statement, decoration):
     """" Emphasises headings by adding decoration
@@ -247,14 +246,6 @@ else:
 
 
 #Prepare Strings for File Output
-# strings / output area
-# **** Get current date for heading and filename ****
-today = date.today()
-
-# Get day, month and year as individual strings
-day = today.strftime("%d")
-month = today.strftime("%m")
-year = today.strftime("%Y")
 
 # Recommendation section header
 recommendation_heading = make_statement("Best Value Recommendation", "-")
@@ -281,8 +272,7 @@ else:
                             headers='keys', tablefmt='psql', showindex=False)
 
 # Headings
-main_heading_string = make_statement("Price Comparison Report"  
-                                     f"({all_items}, {day}/{month}/{year})", "=")
+main_heading_string = make_statement("Price Comparison Report", "=")
 table_heading = make_statement("Item Details", "-")
 
 # Combine all output lines into one list
@@ -303,12 +293,13 @@ print()
 for item in to_write:
     print(item)
 
-# create file to hold data (add.txt extension)
-file_name = f"{all_items}_{year}_{month}_{day}"
-write_to = "{}.txt".format(file_name)
+# Write to File
+file_name = "Price Comparison Report"
+write_to =  "{}.txt".format(file_name)
+
+text_file = open(write_to, "w+")
 
 # write the item to file
 for item in to_write:
     text_file.write(item)
     text_file.write("\n")
-
