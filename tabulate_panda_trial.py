@@ -1,5 +1,6 @@
 import pandas
 from tabulate import tabulate
+from datetime import date
 
 def make_statement(statement, decoration):
     """" Emphasises headings by adding decoration
@@ -84,18 +85,19 @@ def instructions():
 For each user, enter your budget/money you have on hand...
 Then enter the following information
 - Item Name
-- Weight / Volume of Item
+- Weight (mg) / Volume of Item (ml) / Quantity (q)
 - Cost
 
 The program will record the item information and calculate the 
-unit cost per kg.
+unit cost per amount (kg/L/quantity).
 
 Once you have entered all information products (minimum 2 items to compare) and enter the exit code ('xxx'), 
 the program will display the items information. This  data will be  written to a text file.
 
-It will also recommend the user on which item is purchase that's best suited within their budget.
+It will also recommend the user on which item to purchase that is the best in value and inform whether
+or not it is within their budget and by how much.
 
-*DISCLAIMER* : Please ensure that the items you are comparing with use the same unit. 
+*DISCLAIMER* : Please be reasonable with the items you are comparing. 
 
 
     ''')
@@ -125,7 +127,7 @@ if want_instructions == "yes":
     instructions()
 
 # Get user budget
-budget = num_check("Enter Budget $:", "float")
+budget = num_check("Enter Budget $: ", "float")
 
 # Ask measurement type
 item_type = string_check("Are your items measured in weight, volume, or quantity? ",
@@ -135,7 +137,11 @@ item_type = string_check("Are your items measured in weight, volume, or quantity
 
 # Start item entry loop
 while True:
+    # Add space before each new item entry
+    print()
+
     item = not_blank("Item Name: ")
+
 
     if item.lower() == "xxx":
         if len(all_items) < MIN_ITEMS:
@@ -171,7 +177,7 @@ while True:
         converted_amount = amount
 
     # Get the item cost
-    cost = num_check("Enter the item cost $", "float")
+    cost = num_check("Enter the item cost $:", "float")
 
     # Append the data
     all_items.append(item)
@@ -179,8 +185,6 @@ while True:
     all_costs.append(cost)
     converted_amounts.append(converted_amount)
 
-
-go_over_budget = string_check("Do you want to see recommendation even if they're over your budget? ", ('yes', 'no'))
 
 # Create DataFrame without converted column yet
 price_tool_dict = {
@@ -204,9 +208,6 @@ for var_item in ['Cost', 'Unit Price']:
     price_tool_frame[var_item] = price_tool_frame[var_item].apply(currency)
 
 
-# Recommendation System
-print()
-print(make_statement("Recommendation", "💡"))
 
 # Convert costs back to numbers for comparison
 costs_as_numbers = []
@@ -219,38 +220,20 @@ for unit_price in price_tool_frame['Unit Price']:
     unit_prices_as_numbers.append(float(unit_price.replace('$', '')))
 
 # Find best value (lowest unit price)
+# If multiple items have the same unit price, the first one is chosen
 unit_price = min(unit_prices_as_numbers)
 best_index = unit_prices_as_numbers.index(unit_price)
 best_item = all_items[best_index]
 best_cost = costs_as_numbers[best_index]
 
-# Make recommendation based on budget preference
-if go_over_budget == "no":
-    if best_cost <= budget:
-        print(f"Recommended: {best_item}")
-        print(f"Cost: {currency(best_cost)} - Within your budget!")
-        print(f"Unit Price: {currency(unit_price)} per {converted_unit}")
-    else:
-        print("Sorry, the best value item is over your budget.")
-        print("Consider items with higher unit prices that fit your budget.")
-
-else:
-    print(f"Best Value: {best_item}")
-    print(f"Cost: {currency(best_cost)}")
-    print(f"Unit Price: {currency(unit_price)} per {converted_unit}")
-
-    if best_cost > budget:
-        print(f"This item is over your budget by {currency(best_cost - budget)}")
-    else:
-        print("This item is within your budget!")
-
 
 #Prepare Strings for File Output
 
 # Recommendation section header
-recommendation_heading = make_statement("Best Value Recommendation", "-")
+recommendation_heading = make_statement("Best  Value Recommendation", "-")
 
 # Individual recommendation lines
+budge_heading = f"Budget: ${budget}"
 recommended_item = f"Item: {best_item}"
 recommended_cost = f"Cost: {currency(best_cost)}"
 recommended_unit_price = f"Unit Price: {currency(unit_price)} per {converted_unit}"
@@ -261,8 +244,6 @@ if best_cost > budget:
 else:
     budget_summary = f"This item is within your budget by {currency(budget - best_cost)}"
 
-closing_message = make_statement("Thank you for using the Price Comparison Tool!", "=")
-
 # Table Output
 if item_type in ['q', 'quantity']:
     table_string = tabulate(price_tool_frame[['Item', amount_label, 'Cost', 'Unit Price']],
@@ -272,20 +253,30 @@ else:
                             headers='keys', tablefmt='psql', showindex=False)
 
 # Headings
-main_heading_string = make_statement("Price Comparison Report", "=")
+
+# strings / output area
+# **** Get current date for heading and filename ****
+today = date.today()
+
+# Get day, month and year as individual strings
+day = today.strftime("%d")
+month = today.strftime("%m")
+year = today.strftime("%Y")
+# Headings / Strings...
+main_heading_string = make_statement(f"Price Comparison Tool "
+                                     f"({day}/{month}/{year})", "=")
 table_heading = make_statement("Item Details", "-")
 
 # Combine all output lines into one list
 to_write = [
-    main_heading_string,
+    main_heading_string, budge_heading,
     table_heading,
-    table_string,
+    table_string,  "\n",
     recommendation_heading,
     recommended_item,
     recommended_cost,
     recommended_unit_price,
     budget_summary,
-    closing_message
 ]
 
 # Print Area
@@ -294,7 +285,7 @@ for item in to_write:
     print(item)
 
 # Write to File
-file_name = "Price Comparison Report"
+file_name =f"{best_item}_{year}_{month}_{day}"
 write_to =  "{}.txt".format(file_name)
 
 text_file = open(write_to, "w+")
