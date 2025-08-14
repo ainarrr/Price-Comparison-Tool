@@ -150,9 +150,11 @@ while True:
     else:
         converted_amount = amount
 
+
+
     # Get the item price
     price = num_check("Enter the item price $:", "float")
-    unit_price = (price / amount)
+    unit_price = (price / converted_amount)
 
     # Append the data
     all_items.append(item)
@@ -172,7 +174,6 @@ price_tool_dict = {
 # create dataframe / table from dictionary
 price_tool_frame = pandas.DataFrame(price_tool_dict)
 
-#
 # Currency formatting (using my currency function)
 for var_item in ['Price']:
     price_tool_frame[var_item] = price_tool_frame[var_item].apply(currency)
@@ -183,6 +184,8 @@ for var_item in ['Price']:
     tabulate_string = tabulate(frame, headers=["Item", "Amount", "Amount (conv)", "Price", "Unit Price"], tablefmt="psql", showindex=False)
 
     best_unit_price = min(all_unit_price)
+
+
 # Convert prices back to numbers for comparison
 # prices_as_numbers = []
 # unit_prices_as_numbers = []
