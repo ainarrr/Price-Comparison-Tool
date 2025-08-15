@@ -98,13 +98,15 @@ all_amounts = []  # grams or millilitres or quantity
 all_prices = []
 converted_amounts = []
 all_unit_price = []
-
+all_unit_pricing = []
 
 
 
 print("Price Comparison Tool")
 
 print()
+
+unit = ""
 # Ask if user wants instructions
 want_instructions = string_check("Do you want to see the instructions? ")
 if want_instructions == "yes":
@@ -126,7 +128,6 @@ elif item_type == 'volume':
     unit = string_check("What unit do you want to use, ml or L? ",
                         valid_answers=volume)
 
-
 # Start item entry loop
 while True:
     # Add space before each new item entry
@@ -144,17 +145,18 @@ while True:
 
     # Convert amount to standard unit
     if unit == 'g' or 'ml':
-        converted_amount = amount / 1000
+        converted_amount = round(amount / 1000, 2)
     elif unit == 'kg' or 'L':
-        converted_amount = amount * 1000
-    else:
+        converted_amount = round(amount * 1000, 2)
+    if item_type == "quantity":
         converted_amount = amount
 
 
 
     # Get the item price
     price = num_check("Enter the item price $:", "float")
-    unit_price = (price / converted_amount)
+    unit_pricing = price / amount
+    unit_price = f"{unit_pricing:.2f}"
 
     # Append the data
     all_items.append(item)
@@ -162,6 +164,7 @@ while True:
     all_prices.append(price)
     converted_amounts.append(converted_amount)
     all_unit_price.append(unit_price)
+    all_unit_pricing.append(unit_pricing)
 
 # Create DataFrame
 price_tool_dict = {
@@ -183,43 +186,29 @@ for var_item in ['Price']:
 
     tabulate_string = tabulate(frame, headers=["Item", "Amount", "Amount (conv)", "Price", "Unit Price"], tablefmt="psql", showindex=False)
 
-    best_unit_price = min(all_unit_price)
+    best_unit_price = min(all_unit_pricing)
+    best_index = all_unit_pricing.index(best_unit_price)
+    best_item = all_items[best_index]
+    best_amount = all_amounts[best_index]
+    best_conv_amount = converted_amounts[best_index]
+    best_price = all_prices[best_index]
 
+#Prepare Strings for File Output
 
-# Convert prices back to numbers for comparison
-# prices_as_numbers = []
-# unit_prices_as_numbers = []
-#
-# for price in price_tool_frame['Price']:
-#     prices_as_numbers.append(float(price.replace('$', '')))
-#
-# for unit_price in price_tool_frame['Unit Price']:
-#     unit_prices_as_numbers.append(float(unit_price.replace('$', '')))
+# Recommendation section header
+recommendation_heading = make_statement("Best  Value Recommendation", "-")
 
-# Find best value (lowest unit price)
-# If multiple items have the same unit price, the first one is chosen
-# best_unit_price = min(unit_prices_as_numbers)
-# best_index = unit_prices_as_numbers.index(unit_price)
-# best_item = all_items[best_index]
-# best_price = prices_as_numbers[best_index]
-#
-#
-# #Prepare Strings for File Output
-#
-# # Recommendation section header
-# recommendation_heading = make_statement("Best  Value Recommendation", "-")
-#
-# # Individual recommendation lines
-# budge_heading = f"Budget: ${budget}"
-# recommended_item = f"Item: {best_item}"
-# recommended_price = f"Price: {currency(best_price)}"
-# recommended_unit_price = f"Unit Price: {currency(best_unit_price)} per {converted_amount}"
-#
-# # Budget summary
-# if best_price > budget:
-#     budget_summary = f"This item is over your budget by {currency(best_price - budget)}"
-# else:
-#     budget_summary = f"This item is within your budget by {currency(budget - best_price)}"
+# Individual recommendation lines
+budge_heading = f"Budget: ${budget}"
+recommended_item = f"Item: {best_item}"
+recommended_price = f"Price: {currency(best_price)}"
+recommended_unit_price = f"Unit Price: {currency(best_unit_price)} per {converted_amount}"
+
+# Budget summary
+if best_price > budget:
+    budget_summary = f"This item is over your budget by {currency(best_price - budget)}"
+else:
+    budget_summary = f"This item is within your budget by {currency(budget - best_price)}"
 
 
 # Headings
@@ -242,6 +231,11 @@ to_write = [
     main_heading_string,
     table_heading,
     tabulate_string,  "\n",
+    recommendation_heading,
+    recommended_item,
+    recommended_price,
+    recommended_unit_price,
+    budget_summary,
 ]
 
 # Print Area
