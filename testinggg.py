@@ -88,18 +88,15 @@ or not it is within their budget and by how much.
 # Main Routine goes here
 
 # Initialise variables / non-default options
-measurement_ans = ('weight', 'volume', 'quantity')
-weight = ('kg','g')
-volume = ('L', 'ml')
+measurement_ans = ('g', 'kg', 'ml', 'L', 'quantity')
 
 # Lists to hold item details ( amount in g/ml/qty)
 all_items = []
 all_amounts = []  # grams or millilitres or quantity
 all_prices = []
-converted_amounts = []
+all_budget_price = []
+stand_amounts = []
 all_unit_price = []
-all_unit_pricing = []
-
 
 
 print("Price Comparison Tool")
@@ -116,17 +113,9 @@ if want_instructions == "yes":
 budget = num_check("Enter Budget $: ", "float")
 
 # Ask measurement type
-item_type = string_check("Are your items measured in weight, volume, or quantity? ",
+unit_type = string_check("Are your items measured in g, kg, ml, L or quantity? ",
                          valid_answers=measurement_ans,
                          num_letters=1)
-
-if item_type == 'weight':
-    unit = string_check("What unit do you want to use, g or kg? ",
-                        valid_answers=weight)
-
-elif item_type == 'volume':
-    unit = string_check("What unit do you want to use, ml or L? ",
-                        valid_answers=volume)
 
 # Start item entry loop
 while True:
@@ -144,33 +133,43 @@ while True:
     amount = num_check("Amount : ")
 
     # Convert amount to standard unit
-    if unit == 'g' or 'ml':
-        converted_amount = round(amount / 1000, 2)
-    elif unit == 'kg' or 'L':
-        converted_amount = round(amount * 1000, 2)
-    if item_type == "quantity":
-        converted_amount = amount
-
+    if unit_type == 'g' or 'ml':
+        stand_amount = round(amount / 1000, 2)
+    elif unit_type == 'kg' or 'L':
+        stand_amount = amount
+        amount = round(amount * 1000, 2)
+    if unit_type == "quantity":
+        stand_amount = amount
 
 
     # Get the item price
     price = num_check("Enter the item price $:", "float")
-    unit_pricing = price / amount
-    unit_price = f"{unit_pricing:.2f}"
+    unit_price = price / amount
 
     # Append the data
     all_items.append(item)
     all_amounts.append(amount)
     all_prices.append(price)
-    converted_amounts.append(converted_amount)
+    if price <= budget:
+        all_budget_price.append(unit_price)
+    stand_amounts.append(stand_amount)
     all_unit_price.append(unit_price)
-    all_unit_pricing.append(unit_pricing)
+
+best_unit_price = min(all_unit_price)
+best_index = all_unit_price.index(best_unit_price)
+best_price = all_prices[best_index]
+if best_price > budget:
+    best_unit_price = min(all_budget_price)
+    best_index = all_budget_price.index(best_unit_price)
+    best_price = all_prices[best_index]
+best_item = all_items[best_index]
+best_stand_amount = stand_amounts[best_index]
 
 # Create DataFrame
 price_tool_dict = {
     "Item" : all_items,
     "Amount" : all_amounts,
-    "Amount (conv)" : converted_amounts,
+    "Amount (standard)" : stand_amounts,
     "Price": all_prices,
     "Unit Price" : all_unit_price
 }
@@ -184,14 +183,7 @@ for var_item in ['Price']:
     # make panda
     frame = pandas.DataFrame(price_tool_dict)
 
-    tabulate_string = tabulate(frame, headers=["Item", "Amount", "Amount (conv)", "Price", "Unit Price"], tablefmt="psql", showindex=False)
-
-    best_unit_price = min(all_unit_pricing)
-    best_index = all_unit_pricing.index(best_unit_price)
-    best_item = all_items[best_index]
-    best_amount = all_amounts[best_index]
-    best_conv_amount = converted_amounts[best_index]
-    best_price = all_prices[best_index]
+    tabulate_string = tabulate(frame, headers=["Item", "Amount", "Amount (standard)", "Price", "Unit Price"], tablefmt="psql", showindex=False)
 
 #Prepare Strings for File Output
 
@@ -202,7 +194,7 @@ recommendation_heading = make_statement("Best  Value Recommendation", "-")
 budge_heading = f"Budget: ${budget}"
 recommended_item = f"Item: {best_item}"
 recommended_price = f"Price: {currency(best_price)}"
-recommended_unit_price = f"Unit Price: {currency(best_unit_price)} per {converted_amount}"
+recommended_unit_price = f"Unit Price: {currency(best_unit_price)} per {best_stand_amount}"
 
 # Budget summary
 if best_price > budget:
@@ -212,7 +204,6 @@ else:
 
 
 # Headings
-
 # strings / output area
 # **** Get current date for heading and filename ****
 today = date.today()
