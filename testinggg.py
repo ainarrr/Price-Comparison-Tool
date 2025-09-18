@@ -68,7 +68,7 @@ def instructions():
 For each user, enter your budget/money you have on hand...
 Then enter the following information
 - Item Name
-- Weight (mg) / Volume of Item (ml) / Quantity (q)
+- Weight (mg/kg) / Volume of Item (ml/L) / Quantity (q)
 - price
 
 The program will record the item information and calculate the 
@@ -127,6 +127,7 @@ while True:
     if item.lower() == "xxx":
         if len(all_items) < 2:
             print("Oops, you need at least two items before exiting.\n")
+            continue
         else:
             break
 
@@ -144,7 +145,7 @@ while True:
 
     # Get the item price
     price = num_check("Enter the item price $:", "float")
-    unit_price = price / amount
+    unit_price = price / round(amount,2)
 
     # Append the data
     all_items.append(item)
