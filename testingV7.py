@@ -115,15 +115,15 @@ if want_instructions == "yes":
 budget = num_check("Enter Budget $: ", "float")
 
 # Ask measurement type
-unit_type = string_check("Are your items measured in g, kg, ml, L or quantity? ",
+unit_type = string_check("Are your items measured in g, kg, ml, l or quantity? ",
                          valid_answers=measurement_ans,
                          num_letters=1)
 
 # Get standard unit
 if unit_type in ('g', 'kg'):
     stand_unit = "kg"
-elif unit_type in ('ml', 'L'):
-    stand_unit = "L"
+elif unit_type in ('ml', 'l'):
+    stand_unit = "l"
 else:
     stand_unit = "piece"
 
@@ -146,7 +146,7 @@ while True:
     # Convert amount to standard unit (kg for weight, L for volume, quantity unchanged)
     if unit_type in ('g', 'ml'):
         stand_amount = round(amount / 1000, 4)
-    elif unit_type in ('kg', 'L'):
+    elif unit_type in ('kg', 'l'):
         stand_amount = amount
     else:
         stand_amount = amount
@@ -209,7 +209,7 @@ recommendation_heading = make_statement("Best  Value Recommendation", "-")
 recommended_item = f"Item: {best_item}"
 recommended_price = f"Price: {currency(best_price)}"
 recommended_unit_price = f"Unit Price: {currency(best_unit_price)} per {stand_unit}"
-budget_summary = f"This item is over your budget by {currency(best_price - budget)}"
+
 
 # if price is over budget, ask user if they want item with the best unit price under budget
 if best_price > budget:
@@ -225,7 +225,11 @@ if best_price > budget:
         recommended_item = f"Item: {best_item}"
         recommended_price = f"Price: {currency(best_price)}"
         recommended_unit_price = f"Unit Price: {currency(best_unit_price)} per {stand_unit}"
-        budget_summary = f"This item is within your budget by {currency(budget - best_price)}"
+
+if best_price > budget:
+    budget_summary = f"This item is over your budget by {currency(best_price - budget)}"
+else:
+    budget_summary = f"This item is under your budget by {currency(budget - best_price)}"
 
 # Headings
 # strings / output area
